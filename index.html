@@ -67,31 +67,69 @@
             return urlParams.get(name);
         }
 
+        function getTextParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const textParams = [];
+            let index = 1;
+            
+            // Look for text1, text2, text3, etc.
+            while (true) {
+                const textValue = urlParams.get(`text${index}`);
+                if (textValue === null) {
+                    break;
+                }
+                textParams.push(textValue);
+                index++;
+            }
+            
+            return textParams;
+        }
+
         function displayContent() {
             const imageUrl = getQueryParameter('image');
-            const text = getQueryParameter('text');
+            const placementImageUrl = getQueryParameter('placement');
+            const textArray = getTextParameters();
             const contentDiv = document.getElementById('content');
             
             let html = '';
             
-            if (!imageUrl && !text) {
-                html = '<div class="error">No image URL or text provided. Please add query parameters to the URL.</div>';
+            if (!imageUrl && !placementImageUrl && textArray.length === 0) {
+                html = '<div class="error">No image URL, placement image, or text provided. Please add query parameters to the URL.</div>';
+                html += `
+                    <div class="example">
+                        <h3>Usage Examples:</h3>
+                        <p><strong>Single text:</strong> ?text1=Hello World</p>
+                        <p><strong>Multiple texts:</strong> ?text1=First text&text2=Second text&text3=Third text</p>
+                        <p><strong>With main image:</strong> ?image=https://example.com/image.jpg&text1=Hello World</p>
+                        <p><strong>With placement image:</strong> ?placement=https://example.com/placement.jpg&text1=Hello World</p>
+                        <p><strong>With both images:</strong> ?image=https://example.com/image.jpg&placement=https://example.com/placement.jpg&text1=Hello World</p>
+                    </div>
+                `;
             } else {
                 if (imageUrl) {
                     html += `
                         <div class="image-container">
-                            <img src="${imageUrl}" alt="Displayed image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                            <div style="display:none; color: #dc3545;">Failed to load image: ${imageUrl}</div>
+                            <img src="${imageUrl}" alt="Main image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         </div>
                     `;
                 }
                 
-                if (text) {
+                if (placementImageUrl) {
                     html += `
-                        <div class="text-container">
-                            <p>${text}</p>
+                        <div class="image-container">
+                            <img src="${placementImageUrl}" alt="Placement image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                         </div>
                     `;
+                }
+                
+                if (textArray.length > 0) {
+                    textArray.forEach((text, index) => {
+                        html += `
+                            <div class="text-container">
+                                <p>${text}</p>
+                            </div>
+                        `;
+                    });
                 }
             }
             
